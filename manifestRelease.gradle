@@ -1,0 +1,65 @@
+import groovy.xml.XmlUtil
+
+def log(String moduleName, String info) {
+    println("<$moduleName> ===> $info")
+}
+
+def manifestRelease(String moduleName) {
+    //==================Start (集成化AndroidManifest)=====================
+    //找到这个模块的路径
+    String originDir = project(moduleName).projectDir
+    //copy AndroidManifest
+    def releaseManifestDir = "${originDir}/src/main/_ReleaseManifest"
+    copy() {
+        from "${originDir}/src/main/AndroidManifest.xml"
+        into releaseManifestDir
+    }
+    //删除不需要的属性
+    def releaseManifestFile = "${releaseManifestDir}/AndroidManifest.xml"
+    def parser = new XmlParser(false, false)
+    def releaseManifestXml = parser.parse(releaseManifestFile)
+    //删除application中的属性
+    releaseManifestXml.application.each { application ->
+        def keys = application.attributes().keySet()
+        def newKeyList = new ArrayList(keys)
+        newKeyList.forEach {
+            def attrStr = it.toString()
+            // application 需要的属性保留在这里
+            def filter = (attrStr.contains('android:allowBackup')
+                    || attrStr.contains('android:supportsRtl')
+                    || attrStr.contains('android:theme'))
+            if (!filter) {
+                log(moduleName, "remove application attributes :: ${it}")
+                application.attributes().remove(it)
+            }
+        }
+        application.attributes().keySet().forEach {
+            log(moduleName, "has application attributes :: ${it}")
+        }
+
+        //删除 LAUNCHER  <intent-filter>
+        def categoryList = releaseManifestXml.application.activity.'intent-filter'.category
+        log(moduleName, categoryList.toString())
+        categoryList.forEach { category ->
+            def categoryName = category.attributes().get('android:name')
+            if (categoryName == 'android.intent.category.LAUNCHER') {
+                def intent_filter = category.parent()
+                if (intent_filter.name() == 'intent-filter') {
+                    def delResult = intent_filter.parent().remove(intent_filter)
+                    log(moduleName, "del android.intent.category.LAUNCHER for intent-filter :: $delResult")
+                }
+            }
+        }
+
+        //保存
+        PrintWriter pw = new PrintWriter(releaseManifestFile, ("UTF-8"))
+        pw.write(XmlUtil.serialize(releaseManifestXml))//用XmlUtil.serialize方法,将String改为xml格式
+        pw.close()
+    }
+    //==================End  (集成化AndroidManifest)=====================
+}
+
+
+ext {
+     manifestRelease = this.&manifestRelease
+}

@@ -1,0 +1,4 @@
+rootProject.name = "ComponentExample"
+include ':app'
+include ':module_user'
+include ':lib_comm'

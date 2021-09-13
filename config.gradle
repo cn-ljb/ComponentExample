@@ -1,0 +1,53 @@
+// config.gradle文件内容：
+ext {
+
+    // true 组件化环境，将所有业务Library组件化为可执行Module，供开发人员开发
+    // false 集成环境，将所有可执行Module集成化为Library，打包到App主模块里
+    isComponent = false
+
+    kotlin_version = "1.5.20"
+    ktx_version = "1.6.0"
+    appcompat_version = "1.2.0"
+    material_version = "1.2.1"
+    constraintlayout_version = "2.0.4"
+
+    // ARouter API
+    arouter_api_version = "1.5.2"
+    // ARouter 注解处理器
+    arouter_compiler_version = "1.5.2"
+    // StartUp 模块初始化工具
+    startup_version = "1.1.0-rc01"
+
+    //App编译环境 字典配置
+    application = [
+            compileSdkVersion: 30,
+            buildToolsVersion: "30.0.2",
+            minSdkVersion    : 16,
+            targetSdkVersion : 30
+    ]
+    //各模块AppId 字典配置
+    appId = [
+            app : "com.ljb.component",
+            user: "com.ljb.component.user"
+    ]
+
+    //各模块引入的第三方公共库 字典配置
+    dependenciesImport = [
+            kotlin_stdlib   : "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version",
+            ktx             : "androidx.core:core-ktx:$ktx_version",
+            appcompat       : "androidx.appcompat:appcompat:$appcompat_version",
+            material        : "com.google.android.material:material:$material_version",
+            constraintlayout: "androidx.constraintlayout:constraintlayout:$constraintlayout_version",
+
+            //startup
+            startup         : "androidx.startup:startup-runtime:$startup_version",
+
+            arouter_api     : "com.alibaba:arouter-api:$arouter_api_version"
+    ]
+
+    //注解处理器 - kotlin
+    dependenciesKapt = [
+            arouter: "com.alibaba:arouter-compiler:$arouter_compiler_version"
+    ]
+
+}

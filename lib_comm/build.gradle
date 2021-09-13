@@ -1,0 +1,58 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+}
+
+def application = rootProject.ext.application
+def project_appId = rootProject.ext.appId.app
+
+def dependenciesImp = rootProject.ext.dependenciesImport
+def dependenciesKapt = rootProject.ext.dependenciesKapt
+
+android {
+    compileSdkVersion application.compileSdkVersion
+    buildToolsVersion application.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion application.minSdkVersion
+        targetSdkVersion application.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+
+        //将当前构建环境状态写入 BuildConfig 文件中
+        buildConfigField("boolean", "IS_COMPONENT", String.valueOf(isComponent))
+        buildConfigField("String", "APP_ID", "\"" + String.valueOf(project_appId) + "\"")
+
+        kapt {
+            arguments {
+                arg("AROUTER_MODULE_NAME", project.getName())
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    dependenciesImp.each { k, v -> implementation(v) }
+    dependenciesKapt.each { k, v -> kapt(v) }
+}

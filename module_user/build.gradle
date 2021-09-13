@@ -1,0 +1,84 @@
+// 1、取出isComponent字段
+def isComponent = rootProject.ext.isComponent
+
+// 2、根据isComponent字段，来确定当前是集成化 还是组件化
+if (isComponent) {
+    apply plugin: 'com.android.application'
+} else {
+    apply plugin: 'com.android.library'
+}
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
+
+
+def appId = rootProject.ext.appId
+def application = rootProject.ext.application
+def dependenciesImport = rootProject.ext.dependenciesImport
+def dependenciesKapt = rootProject.ext.dependenciesKapt
+
+//清单文件处理
+rootProject.ext.manifestRelease(project.name)
+
+android {
+    compileSdkVersion application.compileSdkVersion
+    buildToolsVersion application.buildToolsVersion
+
+    defaultConfig {
+
+        // 3、如果当前是组件化，那么就需要 applicationId
+        if (isComponent) {
+            applicationId appId.user
+        }
+
+        minSdkVersion application.minSdkVersion
+        targetSdkVersion application.targetSdkVersion
+        versionCode 100
+        versionName "1.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+
+        // ARouter APT 传参
+        kapt {
+            arguments {
+                arg("AROUTER_MODULE_NAME", project.getName())
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main {
+            // 组建环境与集成环境时使用不同的AndroidManifest.xml文件
+            if (isComponent) {
+                manifest.srcFile 'src/main/AndroidManifest.xml'
+            } else {
+                manifest.srcFile 'src/main/_ReleaseManifest/AndroidManifest.xml'
+            }
+        }
+    }
+}
+
+dependencies {
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation project(":lib_comm")
+
+    dependenciesImport.each { k, v -> implementation(v) }
+    dependenciesKapt.each { k, v -> kapt(v) }
+}
